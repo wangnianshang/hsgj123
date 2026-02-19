@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电力单位智能换算工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+            background: linear-gradient(135deg, #001a00 0%, #003300 50%, #006600 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(0, 51, 0, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 204, 102, 0.3);
+            border: 1px solid #00cc66;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #00ff99;
+            text-shadow: 0 0 10px rgba(0, 255, 153, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #99ffcc;
+            font-size: 14px;
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(0, 102, 51, 0.8);
+            border-radius: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active {
+            background: rgba(0, 204, 102, 0.3);
+            border-bottom-color: #00ff99;
+            color: #00ff99;
+        }
+
+        .tab:hover {
+            background: rgba(0, 204, 102, 0.2);
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #99ffcc;
+            font-weight: bold;
+        }
+
+        .input-group select,
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #00cc66;
+            border-radius: 10px;
+            background: rgba(0, 51, 0, 0.8);
+            color: #ffffff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group select:focus,
+        .input-group input:focus {
+            outline: none;
+            border-color: #00ff99;
+            box-shadow: 0 0 15px rgba(0, 255, 153, 0.3);
+        }
+
+        .input-group input {
+            -moz-appearance: textfield;
+        }
+
+        .input-group input::-webkit-outer-spin-button,
+        .input-group input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .results {
+            background: rgba(0, 102, 51, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #00cc66;
+        }
+
+        .results h3 {
+            text-align: center;
+            color: #00ff99;
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .result-table th,
+        .result-table td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 204, 102, 0.3);
+            font-size: 16px;
+        }
+
+        .result-table th {
+            color: #99ffcc;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .result-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .result-table tr:hover {
+            background: rgba(0, 204, 102, 0.1);
+        }
+
+        .unit-value {
+            font-family: 'Microsoft YaHei', '微软雅黑', monospace;
+            font-size: 18px;
+            color: #00ff99;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #ff6666;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .tab {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .input-group select,
+            .input-group input {
+                padding: 12px;
+            }
+        }
+
+        .glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px #00ff99;
+            }
+            to {
+                text-shadow: 0 0 20px #00ff99, 0 0 30px #00ff99;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="glow">⚡ 电力单位智能换算工具</h1>
+            <p>快速转换功率和电量单位</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-type="power">功率单位</div>
+            <div class="tab" data-type="energy">电量&绿证单位</div>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="unit-select">选择单位：</label>
+                <select id="unit-select">
+                    <option value="W">W (瓦)</option>
+                    <option value="KW">KW (千瓦)</option>
+                    <option value="MW" selected>MW (兆瓦)</option>
+                    <option value="GW">GW (吉瓦)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="value-input">输入数值：</label>
+                <input type="number" id="value-input" placeholder="请输入数字" step="0.001">
+            </div>
+        </div>
+
+        <div class="error" id="error-message">
+            请输入有效的数字！
+        </div>
+
+        <div class="results">
+            <h3>换算结果</h3>
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>单位</th>
+                        <th>数值</th>
+                    </tr>
+                </thead>
+                <tbody id="result-body">
+                    <tr>
+                        <td>W</td>
+                        <td class="unit-value">0</td>
+                    </tr>
+                    <tr>
+                        <td>KW</td>
+                        <td class="unit-value">0</td>
+                    </tr>
+                    <tr>
+                        <td>MW</td>
+                        <td class="unit-value">0</td>
+                    </tr>
+                    <tr>
+                        <td>GW</td>
+                        <td class="unit-value">0</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // 单位换算系数
+        const conversionFactors = {
+            power: {
+                'W': 1,
+                'KW': 1000,
+                'MW': 1000000,
+                'GW': 1000000000
+            },
+            energy: {
+                'Wh': 1,
+                'KWh': 1000,
+                'MWh': 1000000,
+                'GWh': 1000000000,
+                '绿证': 1000 // 1个绿证 = 1000KWh (1MWh)
+            }
+        };
+
+        // 单位显示名称
+        const unitNames = {
+            power: {
+                'W': 'W (瓦)',
+                'KW': 'KW (千瓦)',
+                'MW': 'MW (兆瓦)',
+                'GW': 'GW (吉瓦)'
+            },
+            energy: {
+                'Wh': 'Wh (瓦时)',
+                'KWh': 'KWh (千瓦时)',
+                'MWh': 'MWh (兆瓦时)',
+                'GWh': 'GWh (吉瓦时)',
+                '绿证': '绿证 (个)'
+            }
+        };
+
+        // 当前选择的类型
+        let currentType = 'power';
+
+        // DOM元素
+        const tabs = document.querySelectorAll('.tab');
+        const unitSelect = document.getElementById('unit-select');
+        const valueInput = document.getElementById('value-input');
+        const resultBody = document.getElementById('result-body');
+        const errorMessage = document.getElementById('error-message');
+
+        // 初始化单位选项
+        function initUnitOptions() {
+            // 清空现有选项
+            unitSelect.innerHTML = '';
+            
+            // 添加新选项
+            Object.entries(unitNames[currentType]).forEach(([value, text]) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = text;
+                unitSelect.appendChild(option);
+            });
+            
+            // 默认选择MW或MWh
+            unitSelect.value = currentType === 'power' ? 'MW' : 'MWh';
+        }
+
+        // 更新结果表格
+        function updateResultTable() {
+            const inputValue = parseFloat(valueInput.value);
+            const fromUnit = unitSelect.value;
+            
+            // 验证输入
+            if (isNaN(inputValue) || inputValue === '') {
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            errorMessage.style.display = 'none';
+            
+            // 计算换算结果
+            const factors = conversionFactors[currentType];
+            const baseValue = inputValue * factors[fromUnit];
+            
+            // 清空并重新生成表格内容
+            resultBody.innerHTML = '';
+            
+            // 根据当前类型生成不同的结果行
+            if (currentType === 'power') {
+                // 功率单位：W, KW, MW, GW
+                ['W', 'KW', 'MW', 'GW'].forEach(unit => {
+                    const row = document.createElement('tr');
+                    const unitCell = document.createElement('td');
+                    const valueCell = document.createElement('td');
+                    
+                    unitCell.textContent = unit;
+                    valueCell.className = 'unit-value';
+                    valueCell.textContent = formatNumber(baseValue / factors[unit]);
+                    
+                    row.appendChild(unitCell);
+                    row.appendChild(valueCell);
+                    resultBody.appendChild(row);
+                });
+            } else {
+                // 电量&绿证单位：Wh, KWh, MWh, GWh, 绿证
+                ['Wh', 'KWh', 'MWh', 'GWh', '绿证'].forEach(unit => {
+                    const row = document.createElement('tr');
+                    const unitCell = document.createElement('td');
+                    const valueCell = document.createElement('td');
+                    
+                    unitCell.textContent = unit;
+                    valueCell.className = 'unit-value';
+                    valueCell.textContent = formatNumber(baseValue / factors[unit]);
+                    
+                    row.appendChild(unitCell);
+                    row.appendChild(valueCell);
+                    resultBody.appendChild(row);
+                });
+            }
+        }
+
+        // 格式化数字显示（移除科学计数法，添加千位分隔符）
+        function formatNumber(num) {
+            if (num === 0) return '0';
+            
+            // 处理小数部分
+            if (Math.abs(num) < 1) {
+                // 对于小于1的数，显示9位小数
+                return addThousandSeparators(num.toFixed(9));
+            } else {
+                // 对于大于等于1的数，分割整数和小数部分
+                const parts = num.toString().split('.');
+                const integerPart = addThousandSeparators(parts[0]);
+                const decimalPart = parts[1] ? '.' + parts[1] : '';
+                return integerPart + decimalPart;
+            }
+        }
+
+        // 添加千位分隔符
+        function addThousandSeparators(numberStr) {
+            return numberStr.replace(/\d(?=(\d{3})+$)/g, '$&,');
+        }
+
+        // 标签切换事件
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 更新激活状态
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // 更新当前类型
+                currentType = tab.dataset.type;
+                
+                // 更新单位选项
+                initUnitOptions();
+                
+                // 重新计算
+                updateResultTable();
+            });
+        });
+
+        // 输入变化事件
+        unitSelect.addEventListener('change', updateResultTable);
+        valueInput.addEventListener('input', updateResultTable);
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initUnitOptions();
+            
+            // 设置默认值
+            valueInput.value = '1';
+            updateResultTable();
+        });
+
+        // 移动端输入优化
+        valueInput.addEventListener('touchstart', function(e) {
+            this.focus();
+        });
+    </script>
+</body>
+</html>
