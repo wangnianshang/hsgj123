@@ -337,11 +337,15 @@
 
         // 更新结果表格
         function updateResultTable() {
-            const inputValue = parseFloat(valueInput.value);
+            // 获取输入值并去除千分位分隔符
+            let rawInputValue = valueInput.value.replace(/,/g, '');
+            // 再次去除非数字和小数点字符，确保 parseFloat 正确解析
+            rawInputValue = rawInputValue.replace(/[^0-9.]/g, '');
+            const inputValue = parseFloat(rawInputValue);
             const fromUnit = unitSelect.value;
             
             // 验证输入
-            if (isNaN(inputValue) || inputValue === '') {
+            if (isNaN(inputValue) || rawInputValue === '') {
                 errorMessage.style.display = 'block';
                 return;
             }
@@ -431,14 +435,34 @@
 
         // 输入变化事件
         unitSelect.addEventListener('change', updateResultTable);
-        valueInput.addEventListener('input', updateResultTable);
+        valueInput.addEventListener('input', function(e) {
+            updateResultTable();
+        });
+        // 失去焦点时添加千分位分隔符
+        valueInput.addEventListener('blur', function() {
+            let rawValue = valueInput.value.replace(/,/g, '');
+            rawValue = rawValue.replace(/[^0-9.]/g, '');
+
+            if (rawValue && rawValue !== '0') {
+                const parts = rawValue.split('.');
+                let integerPart = parts[0];
+                let decimalPart = parts.length > 1 ? '.' + parts[1] : '';
+
+                // 使用更可靠的方法添加千分位分隔符
+                integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                valueInput.value = integerPart + decimalPart;
+
+                updateResultTable();
+            }
+        });
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
             initUnitOptions();
             
-            // 设置默认值
+            // 设置默认值并格式化
             valueInput.value = '1';
+            formatInputValue();
             updateResultTable();
         });
 
