@@ -1,0 +1,14 @@
+{
+  "name": "power-unit-converter",
+  "version": "1.0.0",
+  "description": "电力单位换算工具 - Power and Energy Unit Converter",
+  "main": "power-converter.html",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": ["power", "energy", "converter", "unit-conversion", "h5"],
+  "author": "wangnianshang",
+  "license": "MIT"
+}
